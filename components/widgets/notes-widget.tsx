@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import { EditorContent, useEditor } from "@tiptap/react";
+import { StarterKit } from "@tiptap/starter-kit";
+import { TaskItem, TaskList } from "@tiptap/extension-list";
+import { Highlight } from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useAppStore } from "@/lib/store";
-import { Plus, Trash2, FileText } from "lucide-react";
+import { Plus, Trash2, FileText, Bold, Italic, Strikethrough, Undo2, Redo2, List, ListOrdered, CheckSquare, Heading1, Heading2, Heading3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Empty,
@@ -16,6 +18,37 @@ import {
   EmptyTitle,
 } from "../ui/empty";
 import { Button } from "../ui/button";
+
+// --- Tiptap Node Styles ---
+import "@/components/tiptap-node/list-node/list-node.scss";
+
+function ToolbarButton({
+  onClick,
+  isActive,
+  disabled,
+  children
+}: {
+  onClick: () => void
+  isActive?: boolean
+  disabled?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "p-1.5 rounded-md transition-colors",
+        isActive
+          ? "bg-primary/20 text-primary"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      {children}
+    </button>
+  )
+}
 
 export function NotesWidget() {
   const {
@@ -30,25 +63,27 @@ export function NotesWidget() {
   const activeNote = notes.find((n) => n.id === activeNoteId);
 
   const editor = useEditor({
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: "outline-none min-h-[100px] prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0",
+        spellcheck: "false",
+      },
+    },
     extensions: [
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
         },
       }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Highlight.configure({ multicolor: true }),
       Placeholder.configure({
         placeholder: "Start writing...",
       }),
     ],
     content: activeNote?.content || "",
-    immediatelyRender: false,
-    editorProps: {
-      attributes: {
-        class:
-          "outline-none h-full prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2",
-        spellcheck: "false",
-      },
-    },
     onUpdate: ({ editor }) => {
       if (activeNoteId) {
         updateNote(activeNoteId, { content: editor.getHTML() });
@@ -102,7 +137,7 @@ export function NotesWidget() {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent className="flex-row justify-center gap-2">
-          <Button  onClick={handleAddNote} variant='outline'>Create Note</Button>
+          <Button onClick={handleAddNote} variant='outline'>Create Note</Button>
         </EmptyContent>
       </Empty>
     );
@@ -159,9 +194,90 @@ export function NotesWidget() {
         />
       )}
 
+      {/* Toolbar */}
+      {editor && (
+        <div className="flex items-center gap-0.5 p-1 rounded-lg bg-muted/30 shrink-0 flex-wrap">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+          >
+            <Undo2 className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+          >
+            <Redo2 className="size-3.5" />
+          </ToolbarButton>
+
+          <div className="w-px h-4 bg-border mx-1" />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            isActive={editor.isActive('heading', { level: 1 })}
+          >
+            <Heading1 className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            isActive={editor.isActive('heading', { level: 2 })}
+          >
+            <Heading2 className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            isActive={editor.isActive('heading', { level: 3 })}
+          >
+            <Heading3 className="size-3.5" />
+          </ToolbarButton>
+
+          <div className="w-px h-4 bg-border mx-1" />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            isActive={editor.isActive('bold')}
+          >
+            <Bold className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            isActive={editor.isActive('italic')}
+          >
+            <Italic className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            isActive={editor.isActive('strike')}
+          >
+            <Strikethrough className="size-3.5" />
+          </ToolbarButton>
+
+          <div className="w-px h-4 bg-border mx-1" />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            isActive={editor.isActive('bulletList')}
+          >
+            <List className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            isActive={editor.isActive('orderedList')}
+          >
+            <ListOrdered className="size-3.5" />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleTaskList().run()}
+            isActive={editor.isActive('taskList')}
+          >
+            <CheckSquare className="size-3.5" />
+          </ToolbarButton>
+        </div>
+      )}
+
       {/* Editor */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <EditorContent editor={editor} className=" text-sm" />
+        <EditorContent editor={editor} className="text-sm" />
       </div>
     </div>
   );

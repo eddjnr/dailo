@@ -5,7 +5,9 @@
       "mcp__trigger__search_docs",
       "Bash(pnpm run build:*)",
       "Bash(pnpm remove:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx @tiptap/cli@latest add simple-editor)",
+      "Bash(npx @tiptap/cli@latest add:*)"
     ]
   }
 }
