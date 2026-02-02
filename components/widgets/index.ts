@@ -1,0 +1,6 @@
+export { PomodoroWidget } from './pomodoro'
+export { TodoWidget } from './todo-widget'
+export { TimeBlockWidget } from './timeblock'
+export { HabitsWidget } from './habits-widget'
+export { NotesWidget } from './notes-widget'
+export { LofiWidget, LofiFullscreenWidget } from './lofi'
