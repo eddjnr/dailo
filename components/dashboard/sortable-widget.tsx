@@ -10,12 +10,13 @@ interface SortableWidgetProps {
   widget: Widget
   isCustomizing: boolean
   isDragging: boolean
+  isOver?: boolean
   className?: string
   onFullscreen?: (widget: Widget) => void
   onResizeStart?: (widget: Widget, e: React.MouseEvent) => void
 }
 
-export function SortableWidget({ widget, isCustomizing, isDragging, className, onFullscreen, onResizeStart }: SortableWidgetProps) {
+export function SortableWidget({ widget, isCustomizing, isDragging, isOver, className, onFullscreen, onResizeStart }: SortableWidgetProps) {
   const {
     attributes,
     listeners,
@@ -35,18 +36,25 @@ export function SortableWidget({ widget, isCustomizing, isDragging, className, o
       ref={setNodeRef}
       style={style}
       className={cn(
-        "w-full transition-all duration-200",
-        isDragging && "opacity-30 scale-[0.98]",
+        "w-full transition-all duration-200 relative",
         className
       )}
     >
-      <WidgetCard
-        widget={widget}
-        isCustomizing={isCustomizing}
-        dragHandleProps={{ ...attributes, ...listeners }}
-        onFullscreen={onFullscreen}
-        onResizeStart={onResizeStart}
-      />
+      {isDragging ? (
+        <div className="w-full h-full rounded-2xl border-2 border-dashed border-primary/50 bg-primary/10" />
+      ) : (
+        <WidgetCard
+          widget={widget}
+          isCustomizing={isCustomizing}
+          dragHandleProps={{ ...attributes, ...listeners }}
+          onFullscreen={onFullscreen}
+          onResizeStart={onResizeStart}
+        />
+      )}
+      {/* Drop target overlay */}
+      {isOver && (
+        <div className="absolute inset-0 rounded-2xl border-2 border-primary bg-primary/10 pointer-events-none z-10" />
+      )}
     </div>
   )
 }

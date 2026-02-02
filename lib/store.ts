@@ -58,10 +58,10 @@ interface AppState {
 const defaultWidgets: Widget[] = [
   { id: 'pomodoro', type: 'pomodoro', title: 'Pomodoro Timer', height: 310, width: 2, column: 0, order: 0, visible: true },
   { id: 'todo', type: 'todo', title: 'Top 3 Priorities', height: 437, width: 1, column: 0, order: 1, visible: true },
-  { id: 'timeblock', type: 'timeblock', title: 'Time Blocking', height: 561, width: 1, column: 1, order: 1, visible: true },
-  { id: 'habits', type: 'habits', title: 'Habit Tracker', height: 333, width: 1, column: 2, order: 1, visible: true },
+  { id: 'timeblock', type: 'timeblock', title: 'Time Blocking', height: 558, width: 1, column: 1, order: 1, visible: true },
+  { id: 'habits', type: 'habits', title: 'Habit Tracker', height: 336, width: 1, column: 2, order: 1, visible: true },
   { id: 'notes', type: 'notes', title: 'Quick Notes', height: 410, width: 1, column: 2, order: 0, visible: true },
-  { id: 'lofi', type: 'lofi', title: 'Lofi Player', height: 184, width: 1, column: 1, order: 0, visible: true },
+  { id: 'lofi', type: 'lofi', title: 'Lofi Player', height: 190, width: 1, column: 1, order: 0, visible: true },
 ]
 
 const defaultPomodoroSettings: PomodoroSettings = {

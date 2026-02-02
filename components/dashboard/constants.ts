@@ -12,4 +12,4 @@ export const WIDGET_ICONS: Record<string, React.ComponentType<{ className?: stri
 export const DEFAULT_WIDGET_ICON = LayoutGrid
 
 export const MIN_WIDGET_HEIGHT = 150
-export const MAX_WIDGET_HEIGHT = 800
+export const MAX_WIDGET_HEIGHT = 1280

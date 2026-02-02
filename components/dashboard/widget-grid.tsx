@@ -4,12 +4,13 @@ import { useState, useCallback } from 'react'
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
+  pointerWithin,
   PointerSensor,
   useSensor,
   useSensors,
   DragStartEvent,
   DragEndEvent,
+  DragOverEvent,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -38,6 +39,7 @@ export function WidgetGrid({
   onResizeStart,
 }: WidgetGridProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [overId, setOverId] = useState<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -61,9 +63,15 @@ export function WidgetGrid({
     setActiveId(event.active.id as string)
   }
 
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event
+    setOverId(over ? (over.id as string) : null)
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
+    setOverId(null)
 
     if (!over) return
 
@@ -143,6 +151,7 @@ export function WidgetGrid({
             widget={widget}
             isCustomizing={isCustomizing}
             isDragging={activeId === widget.id}
+            isOver={overId === widget.id && activeId !== widget.id}
             onFullscreen={onFullscreen}
             onResizeStart={onResizeStart}
             className={cn(
@@ -158,8 +167,9 @@ export function WidgetGrid({
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="grid grid-cols-3 gap-5 items-start">

@@ -54,21 +54,31 @@ export function HabitsWidget() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  const getLast7Days = () => {
+  const getCurrentWeek = () => {
     const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    // Get Monday of current week
+    const dayOfWeek = today.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Sunday = 0, so go back 6 days
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diffToMonday);
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      const dateStr = date.toISOString().split("T")[0];
       days.push({
-        date: date.toISOString().split("T")[0],
+        date: dateStr,
         label: date.toLocaleDateString("en", { weekday: "short" }).charAt(0),
-        isToday: i === 0,
+        isToday: dateStr === todayStr,
       });
     }
     return days;
   };
 
-  const days = getLast7Days();
+  const days = getCurrentWeek();
 
   const getStreak = (completedDays: string[]) => {
     let streak = 0;
@@ -101,9 +111,9 @@ export function HabitsWidget() {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-5">
-        {habits.length === 0 && !isAdding ? (
-          <Empty>
+      {habits.length === 0 && !isAdding ? (
+        <div className="flex-1 flex items-center justify-center">
+          <Empty className="py-0">
             <EmptyHeader>
               <EmptyMedia variant="default" className="text-muted-foreground/40">
                 <Flame className="size-8" />
@@ -117,8 +127,10 @@ export function HabitsWidget() {
               <Button onClick={() => setIsAdding(true)} variant="outline">Add Habit</Button>
             </EmptyContent>
           </Empty>
-        ) : (
-          habits.map((habit) => {
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-5">
+          {habits.map((habit) => {
             const Icon = getIcon(habit.icon);
             const streak = getStreak(habit.completedDays);
             const isCompletedToday = habit.completedDays.includes(today);
@@ -218,10 +230,9 @@ export function HabitsWidget() {
                 </div>
               </div>
             );
-          })
-        )}
+          })}
 
-        {isAdding && (
+          {isAdding && (
           <form
             onSubmit={handleSubmit}
             className="space-y-4 p-4 rounded-2xl bg-muted/20 border border-border/50"
@@ -277,7 +288,8 @@ export function HabitsWidget() {
             </div>
           </form>
         )}
-      </div>
+        </div>
+      )}
 
       {!isAdding && habits.length > 0 && habits.length < 5 && (
         <button

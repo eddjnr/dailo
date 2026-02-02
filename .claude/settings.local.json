@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm add:*)",
+      "mcp__trigger__search_docs",
+      "Bash(pnpm run build:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
