@@ -1,5 +1,11 @@
-import { LOFI_STREAMS, PlayerState } from './constants'
+import { LOFI_STREAMS, PlayerState, LofiStream } from './constants'
 import type { YouTubePlayer, YouTubeEvent } from './types'
+
+export interface CustomStreamData {
+  id: string
+  name: string
+  videoId: string
+}
 
 class YouTubePlayerManager {
   private static instance: YouTubePlayerManager | null = null
@@ -7,6 +13,7 @@ class YouTubePlayerManager {
   private container: HTMLDivElement | null = null
   private initialized = false
   private listeners = new Set<() => void>()
+  private customStreams: CustomStreamData[] = []
   private state: PlayerState = {
     isPlaying: false,
     isReady: false,
@@ -40,6 +47,32 @@ class YouTubePlayerManager {
   private setState(partial: Partial<PlayerState>) {
     this.state = { ...this.state, ...partial }
     this.notify()
+  }
+
+  setCustomStreams(streams: CustomStreamData[]) {
+    this.customStreams = streams
+    this.notify()
+  }
+
+  getAllStreams(): Array<{ id: string; name: string; artist: string; gif: string; isCustom?: boolean }> {
+    const builtIn = LOFI_STREAMS.map(s => ({ ...s, isCustom: false }))
+    const custom = this.customStreams.map(s => ({
+      id: s.videoId,
+      name: s.name,
+      artist: 'Custom',
+      gif: '/lofi.gif',
+      isCustom: true,
+    }))
+    return [...builtIn, ...custom]
+  }
+
+  getCurrentStream() {
+    const allStreams = this.getAllStreams()
+    return allStreams[this.state.streamIndex] || allStreams[0]
+  }
+
+  getStreamCount() {
+    return LOFI_STREAMS.length + this.customStreams.length
   }
 
   init() {
@@ -131,21 +164,39 @@ class YouTubePlayerManager {
   switchStream(direction: 'prev' | 'next') {
     if (!this.player || !this.state.isReady) return
 
+    const allStreams = this.getAllStreams()
+    const totalStreams = allStreams.length
+
     const newIndex = direction === 'next'
-      ? (this.state.streamIndex + 1) % LOFI_STREAMS.length
-      : (this.state.streamIndex - 1 + LOFI_STREAMS.length) % LOFI_STREAMS.length
+      ? (this.state.streamIndex + 1) % totalStreams
+      : (this.state.streamIndex - 1 + totalStreams) % totalStreams
 
     this.setState({ streamIndex: newIndex })
-    this.player.loadVideoById(LOFI_STREAMS[newIndex].id)
+    this.player.loadVideoById(allStreams[newIndex].id)
   }
 
   selectStream(index: number) {
     if (!this.player || !this.state.isReady) return
-    if (index < 0 || index >= LOFI_STREAMS.length) return
+    const allStreams = this.getAllStreams()
+    if (index < 0 || index >= allStreams.length) return
     if (index === this.state.streamIndex) return
 
     this.setState({ streamIndex: index })
-    this.player.loadVideoById(LOFI_STREAMS[index].id)
+    this.player.loadVideoById(allStreams[index].id)
+  }
+
+  playVideoById(videoId: string) {
+    if (!this.player || !this.state.isReady) return
+
+    // Find the stream index for this video ID
+    const allStreams = this.getAllStreams()
+    const index = allStreams.findIndex(s => s.id === videoId)
+
+    if (index !== -1) {
+      this.setState({ streamIndex: index })
+    }
+
+    this.player.loadVideoById(videoId)
   }
 }
 

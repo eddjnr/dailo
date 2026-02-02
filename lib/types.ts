@@ -64,3 +64,10 @@ export interface PomodoroTimerState {
   isRunning: boolean
   sessionsCompleted: number
 }
+
+export interface CustomStream {
+  id: string
+  name: string
+  videoId: string
+  gif: string
+}

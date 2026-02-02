@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Widget, Todo, TimeBlock, Habit, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase } from './types'
+import type { Widget, Todo, TimeBlock, Habit, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase, CustomStream } from './types'
 
 interface AppState {
   widgets: Widget[]
@@ -13,6 +13,7 @@ interface AppState {
   activeNoteId: string | null
   pomodoroSettings: PomodoroSettings
   pomodoroTimer: PomodoroTimerState
+  customStreams: CustomStream[]
   theme: 'light' | 'dark'
 
   // Widget actions
@@ -49,6 +50,10 @@ interface AppState {
   updatePomodoroTimer: (timer: Partial<PomodoroTimerState>) => void
   tickPomodoroTimer: () => void
   resetPomodoroTimer: () => void
+
+  // Custom streams actions
+  addCustomStream: (name: string, videoId: string, gif: string) => void
+  deleteCustomStream: (id: string) => void
 
   // Theme actions
   setTheme: (theme: 'light' | 'dark') => void
@@ -89,6 +94,7 @@ export const useAppStore = create<AppState>()(
       activeNoteId: null,
       pomodoroSettings: defaultPomodoroSettings,
       pomodoroTimer: defaultPomodoroTimer,
+      customStreams: [],
       theme: 'dark',
 
       setWidgets: (widgets) => set({ widgets }),
@@ -231,6 +237,17 @@ export const useAppStore = create<AppState>()(
         },
       })),
 
+      addCustomStream: (name, videoId, gif) => set((state) => ({
+        customStreams: [
+          ...state.customStreams,
+          { id: crypto.randomUUID(), name, videoId, gif },
+        ],
+      })),
+
+      deleteCustomStream: (id) => set((state) => ({
+        customStreams: state.customStreams.filter((s) => s.id !== id),
+      })),
+
       setTheme: (theme) => set({ theme }),
 
       toggleTheme: () => set((state) => ({
@@ -249,6 +266,7 @@ export const useAppStore = create<AppState>()(
         activeNoteId: state.activeNoteId,
         pomodoroSettings: state.pomodoroSettings,
         pomodoroTimer: { ...state.pomodoroTimer, isRunning: false }, // Don't persist running state
+        customStreams: state.customStreams,
         theme: state.theme,
       }),
       migrate: (persistedState, version) => {
