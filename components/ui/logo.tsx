@@ -1,0 +1,21 @@
+import { SVGProps } from 'react'
+
+export function Logo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="60"
+      height="60"
+      viewBox="0 0 60 60"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M0 10.8333H10.8333V48.75H48.75V59.5833H0V10.8333ZM10.8333 0H59.5833V48.75H48.75V10.8333H10.8333V0Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
