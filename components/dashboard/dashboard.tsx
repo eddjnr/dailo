@@ -13,14 +13,12 @@ import { FullscreenWidget } from './fullscreen-widget'
 const emptySubscribe = () => () => {}
 
 export function Dashboard() {
-  const {
-    widgets,
-    reorderWidgets,
-    toggleWidgetVisibility,
-    updateWidgetHeight,
-    theme,
-    toggleTheme,
-  } = useAppStore()
+  const widgets = useAppStore((state) => state.widgets)
+  const reorderWidgets = useAppStore((state) => state.reorderWidgets)
+  const toggleWidgetVisibility = useAppStore((state) => state.toggleWidgetVisibility)
+  const updateWidgetHeight = useAppStore((state) => state.updateWidgetHeight)
+  const theme = useAppStore((state) => state.theme)
+  const toggleTheme = useAppStore((state) => state.toggleTheme)
 
   const [isCustomizing, setIsCustomizing] = useState(false)
   const [fullscreenWidget, setFullscreenWidget] = useState<Widget | null>(null)

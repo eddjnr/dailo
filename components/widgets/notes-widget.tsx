@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
@@ -50,15 +50,13 @@ function ToolbarButton({
   )
 }
 
-export function NotesWidget() {
-  const {
-    notes,
-    activeNoteId,
-    addNote,
-    updateNote,
-    deleteNote,
-    setActiveNote,
-  } = useAppStore();
+export const NotesWidget = memo(function NotesWidget() {
+  const notes = useAppStore((state) => state.notes);
+  const activeNoteId = useAppStore((state) => state.activeNoteId);
+  const addNote = useAppStore((state) => state.addNote);
+  const updateNote = useAppStore((state) => state.updateNote);
+  const deleteNote = useAppStore((state) => state.deleteNote);
+  const setActiveNote = useAppStore((state) => state.setActiveNote);
 
   const activeNote = notes.find((n) => n.id === activeNoteId);
 
@@ -281,4 +279,4 @@ export function NotesWidget() {
       </div>
     </div>
   );
-}
+})

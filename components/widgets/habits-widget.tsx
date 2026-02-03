@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
   Plus,
   X,
@@ -34,8 +34,11 @@ const habitIcons = [
   { id: "heart", icon: Heart, label: "Health" },
 ];
 
-export function HabitsWidget() {
-  const { habits, addHabit, toggleHabitDay, deleteHabit } = useAppStore();
+export const HabitsWidget = memo(function HabitsWidget() {
+  const habits = useAppStore((state) => state.habits)
+  const addHabit = useAppStore((state) => state.addHabit)
+  const toggleHabitDay = useAppStore((state) => state.toggleHabitDay)
+  const deleteHabit = useAppStore((state) => state.deleteHabit)
   const [isAdding, setIsAdding] = useState(false);
   const [newHabit, setNewHabit] = useState({ name: "", icon: "flame" });
   const [collapsedHabits, setCollapsedHabits] = useState<Set<string>>(new Set());
@@ -302,4 +305,4 @@ export function HabitsWidget() {
       )}
     </div>
   );
-}
+})

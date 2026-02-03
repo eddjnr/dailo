@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Plus, Clock } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -17,8 +17,11 @@ import { BlockItem } from './block-item'
 import { DEFAULT_FORM_DATA, BlockFormData } from './constants'
 import type { TimeBlock } from '@/lib/types'
 
-export function TimeBlockWidget() {
-  const { timeBlocks, addTimeBlock, updateTimeBlock, deleteTimeBlock } = useAppStore()
+export const TimeBlockWidget = memo(function TimeBlockWidget() {
+  const timeBlocks = useAppStore((state) => state.timeBlocks)
+  const addTimeBlock = useAppStore((state) => state.addTimeBlock)
+  const updateTimeBlock = useAppStore((state) => state.updateTimeBlock)
+  const deleteTimeBlock = useAppStore((state) => state.deleteTimeBlock)
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<BlockFormData>(DEFAULT_FORM_DATA)
@@ -131,4 +134,4 @@ export function TimeBlockWidget() {
       )}
     </div>
   )
-}
+})

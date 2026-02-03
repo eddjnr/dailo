@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Plus, Check, Trash2, Flame, Zap, Leaf, RotateCcw } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
@@ -29,8 +29,11 @@ const priorityConfig = {
   },
 }
 
-export function TodoWidget() {
-  const { todos, addTodo, toggleTodo, deleteTodo } = useAppStore()
+export const TodoWidget = memo(function TodoWidget() {
+  const todos = useAppStore((state) => state.todos)
+  const addTodo = useAppStore((state) => state.addTodo)
+  const toggleTodo = useAppStore((state) => state.toggleTodo)
+  const deleteTodo = useAppStore((state) => state.deleteTodo)
   const [newTodo, setNewTodo] = useState('')
   const [selectedPriority, setSelectedPriority] = useState<1 | 2 | 3>(1)
   const [isAdding, setIsAdding] = useState(false)
@@ -208,4 +211,4 @@ export function TodoWidget() {
       )}
     </div>
   )
-}
+})

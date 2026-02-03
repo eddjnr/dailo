@@ -33,7 +33,9 @@ function extractVideoId(url: string): string | null {
 
 export const LofiFullscreenWidget = memo(function LofiFullscreenWidget() {
   const state = usePlayerState()
-  const { customStreams, addCustomStream, deleteCustomStream } = useAppStore()
+  const customStreams = useAppStore((state) => state.customStreams)
+  const addCustomStream = useAppStore((state) => state.addCustomStream)
+  const deleteCustomStream = useAppStore((state) => state.deleteCustomStream)
   const [isAdding, setIsAdding] = useState(false)
   const [newUrl, setNewUrl] = useState('')
   const [newName, setNewName] = useState('')

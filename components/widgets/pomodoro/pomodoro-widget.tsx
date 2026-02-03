@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { memo, useState, useEffect, useCallback, useRef } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { useAppStore } from '@/lib/store'
 import type { PomodoroSettings } from '@/lib/types'
@@ -10,15 +10,13 @@ import { TimerDisplay } from './timer-display'
 import { TimerControls } from './timer-controls'
 import { SettingsOverlay } from './settings-overlay'
 
-export function PomodoroWidget() {
-  const {
-    pomodoroSettings,
-    pomodoroTimer,
-    updatePomodoroSettings,
-    updatePomodoroTimer,
-    tickPomodoroTimer,
-    resetPomodoroTimer,
-  } = useAppStore()
+export const PomodoroWidget = memo(function PomodoroWidget() {
+  const pomodoroSettings = useAppStore((state) => state.pomodoroSettings)
+  const pomodoroTimer = useAppStore((state) => state.pomodoroTimer)
+  const updatePomodoroSettings = useAppStore((state) => state.updatePomodoroSettings)
+  const updatePomodoroTimer = useAppStore((state) => state.updatePomodoroTimer)
+  const tickPomodoroTimer = useAppStore((state) => state.tickPomodoroTimer)
+  const resetPomodoroTimer = useAppStore((state) => state.resetPomodoroTimer)
 
   const { phase, timeLeft, isRunning, sessionsCompleted } = pomodoroTimer
   const [showSettings, setShowSettings] = useState(false)
@@ -132,4 +130,4 @@ export function PomodoroWidget() {
       />
     </div>
   )
-}
+})
