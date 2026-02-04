@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo } from 'react'
 import { GripVertical, Eye, EyeOff, Maximize2, GripHorizontal } from 'lucide-react'
 import type { Widget } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -41,10 +41,14 @@ const widgetTitles: Record<Widget['type'], string> = {
   lofi: 'Lofi Player',
 }
 
+// Isolado com memo - só re-renderiza quando o type muda (nunca durante digitação)
+const WidgetContent = memo(function WidgetContent({ type }: { type: Widget['type'] }) {
+  const Component = widgetComponents[type]
+  return <Component />
+})
+
 export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, dragHandleProps, onFullscreen, onResizeStart }: WidgetCardProps) {
-  const { toggleWidgetVisibility } = useAppStore()
-  const [isHovered, setIsHovered] = useState(false)
-  const WidgetComponent = widgetComponents[widget.type]
+  const toggleWidgetVisibility = useAppStore((state) => state.toggleWidgetVisibility)
 
   return (
     <div
@@ -53,14 +57,11 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
         !widget.visible && "opacity-40",
         isOverlay && "rotate-1 scale-[1.02] cursor-grabbing"
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div
         className={cn(
           "h-full rounded-2xl bg-card text-card-foreground p-5 flex flex-col transition-all duration-200 card-elevated border-2 border-transparent",
-          isCustomizing && !isHovered && "border-primary/30",
-          isCustomizing && isHovered && "border-primary",
+          isCustomizing && "border-primary/30 group-hover/card:border-primary",
           isOverlay && "border-primary shadow-2xl shadow-primary/20"
         )}
       >
@@ -123,7 +124,7 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          <WidgetComponent />
+          <WidgetContent type={widget.type} />
         </div>
       </div>
 

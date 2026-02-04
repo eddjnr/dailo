@@ -11,6 +11,7 @@ const fontSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Dailo - Focus Dashboard",
   description: "A productivity dashboard to help you organize your day and maintain focus",
+  icons: { icon: "/logo.svg" },
 };
 
 export default function RootLayout({
