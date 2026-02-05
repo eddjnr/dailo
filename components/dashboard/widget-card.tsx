@@ -34,7 +34,7 @@ const widgetComponents: Record<Widget['type'], React.ComponentType> = {
 
 const widgetTitles: Record<Widget['type'], string> = {
   pomodoro: 'Pomodoro Timer',
-  todo: 'Top 3 Priorities',
+  todo: 'Top Priorities',
   timeblock: 'Time Blocking',
   habits: 'Habit Tracker',
   notes: 'Quick Notes',

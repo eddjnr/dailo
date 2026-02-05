@@ -41,7 +41,6 @@ export const TodoWidget = memo(function TodoWidget() {
   const activeTodos = todos
     .filter((t) => !t.completed)
     .sort((a, b) => a.priority - b.priority)
-    .slice(0, 3)
 
   const completedTodos = todos.filter((t) => t.completed)
 
@@ -53,8 +52,6 @@ export const TodoWidget = memo(function TodoWidget() {
       setIsAdding(false)
     }
   }
-
-  const canAddMore = activeTodos.length < 3
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -148,7 +145,7 @@ export const TodoWidget = memo(function TodoWidget() {
         )}
 
         {/* Add button */}
-        {!isAdding && canAddMore && (
+        {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
             className="mt-1 flex items-center gap-2 w-full py-2.5 px-1 rounded-xl text-sm text-muted-foreground/60 hover:text-foreground hover:bg-muted/20 transition-all group"
