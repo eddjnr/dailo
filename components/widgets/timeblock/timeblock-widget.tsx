@@ -1,137 +1,105 @@
 'use client'
 
-import { memo, useState } from 'react'
-import { Plus, Clock } from 'lucide-react'
+import { memo, useMemo } from 'react'
+import { format, setHours, setMinutes } from 'date-fns'
 import { useAppStore } from '@/lib/store'
-import { Button } from '@/components/ui/button'
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '@/components/ui/empty'
-import { BlockForm } from './block-form'
-import { BlockItem } from './block-item'
-import { DEFAULT_FORM_DATA, BlockFormData } from './constants'
+import { EventCalendar } from '@/components/event-calendar'
+import type { CalendarEvent, EventColor } from '@/components/types'
 import type { TimeBlock } from '@/lib/types'
+
+// Convert TimeBlock time string (HH:mm) to Date object for today
+function timeStringToDate(timeString: string): Date {
+  const [hours, minutes] = timeString.split(':').map(Number)
+  const date = new Date()
+  return setMinutes(setHours(date, hours), minutes)
+}
+
+// Convert Date to time string (HH:mm)
+function dateToTimeString(date: Date): string {
+  return format(date, 'HH:mm')
+}
+
+// Map TimeBlock color to EventColor
+function mapColor(color: string): EventColor {
+  const colorMap: Record<string, EventColor> = {
+    blue: 'sky',
+    green: 'emerald',
+    red: 'rose',
+    yellow: 'amber',
+    purple: 'violet',
+    orange: 'orange',
+    // Default mappings for event colors
+    sky: 'sky',
+    amber: 'amber',
+    violet: 'violet',
+    rose: 'rose',
+    emerald: 'emerald',
+  }
+  return colorMap[color] || 'sky'
+}
+
+// Map EventColor back to TimeBlock color
+function mapColorBack(color?: EventColor): string {
+  return color || 'sky'
+}
+
+// Convert TimeBlock to CalendarEvent
+function timeBlockToCalendarEvent(block: TimeBlock): CalendarEvent {
+  return {
+    id: block.id,
+    title: block.title,
+    start: timeStringToDate(block.startTime),
+    end: timeStringToDate(block.endTime),
+    color: mapColor(block.color),
+    allDay: false,
+  }
+}
+
+// Convert CalendarEvent to TimeBlock data (for add/update)
+function calendarEventToTimeBlock(event: CalendarEvent): Omit<TimeBlock, 'id'> {
+  return {
+    title: event.title,
+    startTime: dateToTimeString(new Date(event.start)),
+    endTime: dateToTimeString(new Date(event.end)),
+    color: mapColorBack(event.color),
+  }
+}
 
 export const TimeBlockWidget = memo(function TimeBlockWidget() {
   const timeBlocks = useAppStore((state) => state.timeBlocks)
   const addTimeBlock = useAppStore((state) => state.addTimeBlock)
   const updateTimeBlock = useAppStore((state) => state.updateTimeBlock)
   const deleteTimeBlock = useAppStore((state) => state.deleteTimeBlock)
-  const [isAdding, setIsAdding] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData] = useState<BlockFormData>(DEFAULT_FORM_DATA)
 
-  const sortedBlocks = [...timeBlocks].sort((a, b) =>
-    a.startTime.localeCompare(b.startTime)
-  )
+  // Convert timeBlocks to CalendarEvents
+  const events = useMemo(() => {
+    return timeBlocks.map(timeBlockToCalendarEvent)
+  }, [timeBlocks])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.title.trim()) return
-
-    if (editingId) {
-      updateTimeBlock(editingId, formData)
-      setEditingId(null)
-    } else {
-      addTimeBlock(formData)
-      setIsAdding(false)
-    }
-    setFormData(DEFAULT_FORM_DATA)
+  const handleEventAdd = (event: CalendarEvent) => {
+    const blockData = calendarEventToTimeBlock(event)
+    addTimeBlock(blockData)
   }
 
-  const handleEdit = (block: TimeBlock) => {
-    setEditingId(block.id)
-    setFormData({
-      title: block.title,
-      startTime: block.startTime,
-      endTime: block.endTime,
-      color: block.color,
-    })
-    setIsAdding(false)
+  const handleEventUpdate = (event: CalendarEvent) => {
+    const blockData = calendarEventToTimeBlock(event)
+    updateTimeBlock(event.id, blockData)
   }
 
-  const handleCancel = () => {
-    setEditingId(null)
-    setIsAdding(false)
-    setFormData(DEFAULT_FORM_DATA)
+  const handleEventDelete = (eventId: string) => {
+    deleteTimeBlock(eventId)
   }
-
-  const handleStartAdding = () => {
-    setIsAdding(true)
-    setFormData(DEFAULT_FORM_DATA)
-  }
-
-  const showEmptyState = sortedBlocks.length === 0 && !isAdding
 
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        {showEmptyState ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="default" className="text-muted-foreground/40">
-                <Clock className="size-8" />
-              </EmptyMedia>
-              <EmptyTitle className="text-muted-foreground/90">No blocks scheduled</EmptyTitle>
-              <EmptyDescription>
-                Plan your day by adding time blocks for focused work sessions.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent className="flex-row justify-center gap-2">
-              <Button onClick={handleStartAdding} variant="outline">Add Block</Button>
-            </EmptyContent>
-          </Empty>
-        ) : (
-          <div className="space-y-1">
-            {sortedBlocks.map((block) => {
-              if (editingId === block.id) {
-                return (
-                  <BlockForm
-                    key={block.id}
-                    formData={formData}
-                    onFormChange={setFormData}
-                    onSubmit={handleSubmit}
-                    onCancel={handleCancel}
-                  />
-                )
-              }
-
-              return (
-                <BlockItem
-                  key={block.id}
-                  block={block}
-                  onEdit={handleEdit}
-                  onDelete={deleteTimeBlock}
-                />
-              )
-            })}
-          </div>
-        )}
-
-        {isAdding && (
-          <BlockForm
-            formData={formData}
-            onFormChange={setFormData}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-          />
-        )}
-      </div>
-
-      {!isAdding && !editingId && sortedBlocks.length > 0 && (
-        <button
-          onClick={handleStartAdding}
-          className="mt-2 shrink-0 flex items-center justify-center gap-2 w-full py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all duration-300 group"
-        >
-          <Plus className="size-4 group-hover:rotate-90 transition-transform duration-300" />
-          <span>Add block</span>
-        </button>
-      )}
+    <div className="flex flex-col h-full ">
+      <EventCalendar
+        events={events}
+        onEventAdd={handleEventAdd}
+        onEventUpdate={handleEventUpdate}
+        onEventDelete={handleEventDelete}
+        initialView="day"
+        compact
+      />
     </div>
   )
 })
