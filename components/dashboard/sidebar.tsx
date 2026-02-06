@@ -1,30 +1,85 @@
 'use client'
 
-import { Sun, Moon, Settings } from 'lucide-react'
+import { useRouter, usePathname } from 'next/navigation'
+import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
-import { WIDGET_ICONS, DEFAULT_WIDGET_ICON } from './constants'
-import type { Widget } from '@/lib/types'
+import { useAppStore } from '@/lib/store'
 
 interface SidebarProps {
-  widgets: Widget[]
   theme: 'light' | 'dark'
   isCustomizing: boolean
   onToggleTheme: () => void
   onToggleCustomizing: () => void
-  onToggleWidgetVisibility: (id: string) => void
-  onWidgetClick: (widget: Widget) => void
 }
 
-export function Sidebar({
-  widgets,
-  theme,
-  isCustomizing,
-  onToggleTheme,
-  onToggleCustomizing,
-  onToggleWidgetVisibility,
-  onWidgetClick,
-}: SidebarProps) {
+const navItems = [
+  { id: 'pomodoro', icon: Timer, path: '/', title: 'Pomodoro' },
+  { id: 'tasks', icon: ListTodo, path: '/tasks', title: 'Tasks' },
+  { id: 'timeblock', icon: CalendarDays, path: '/timeblock', title: 'Calendar' },
+  { id: 'notes', icon: FileText, path: '/notes', title: 'Notes' },
+]
+
+function PomodoroProgressRing({ progress, isRunning }: { progress: number; isRunning: boolean }) {
+  if (!isRunning) return null
+
+  const size = 40
+  const strokeWidth = 2.5
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const strokeDashoffset = circumference - (progress / 100) * circumference
+
+  return (
+    <svg
+      className="absolute inset-0 -rotate-90"
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+    >
+      {/* Background circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        className="text-primary/20"
+      />
+      {/* Progress circle */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={strokeDashoffset}
+        strokeLinecap="round"
+        className="text-primary transition-all duration-1000"
+      />
+    </svg>
+  )
+}
+
+export function Sidebar({ theme, isCustomizing, onToggleTheme, onToggleCustomizing }: SidebarProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const pomodoroTimer = useAppStore((state) => state.pomodoroTimer)
+  const pomodoroSettings = useAppStore((state) => state.pomodoroSettings)
+
+  // Calculate progress
+  const totalTime =
+    pomodoroTimer.phase === 'focus'
+      ? pomodoroSettings.focusDuration * 60
+      : pomodoroTimer.phase === 'shortBreak'
+        ? pomodoroSettings.shortBreakDuration * 60
+        : pomodoroSettings.longBreakDuration * 60
+
+  const progress = ((totalTime - pomodoroTimer.timeLeft) / totalTime) * 100
+
   return (
     <aside className="w-16 shrink-0 border-r border-border flex flex-col items-center py-6 gap-2 sticky top-0 h-screen">
       {/* Logo */}
@@ -32,30 +87,33 @@ export function Sidebar({
         <Logo className="size-5 text-primary" />
       </div>
 
-      {/* Widget toggles */}
+      {/* Navigation */}
       <div className="flex-1 flex flex-col items-center justify-center gap-1">
-        {widgets.map((widget) => {
-          const Icon = WIDGET_ICONS[widget.type] || DEFAULT_WIDGET_ICON
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const isActive = pathname === item.path
+          const isPomodoro = item.id === 'pomodoro'
+
           return (
             <button
-              key={widget.id}
-              onClick={() => {
-                if (isCustomizing) {
-                  onToggleWidgetVisibility(widget.id)
-                } else if (widget.visible) {
-                  onWidgetClick(widget)
-                }
-              }}
+              key={item.id}
+              onClick={() => router.push(item.path)}
               className={cn(
-                "size-10 rounded-xl flex items-center justify-center transition-all duration-200",
-                widget.visible
-                  ? "text-foreground bg-muted/50 hover:bg-muted cursor-pointer"
-                  : "text-muted-foreground/50 hover:text-muted-foreground",
-                isCustomizing && "hover:bg-muted/50 cursor-pointer"
+                "size-10 rounded-xl flex items-center justify-center transition-all duration-200 relative",
+                isActive
+                  ? "text-primary bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                isPomodoro && pomodoroTimer.isRunning && "text-primary"
               )}
-              title={widget.title}
+              title={item.title}
             >
-              <Icon className="size-5" />
+              {isPomodoro && (
+                <PomodoroProgressRing
+                  progress={progress}
+                  isRunning={pomodoroTimer.isRunning}
+                />
+              )}
+              <Icon className="size-5 relative z-10" />
             </button>
           )
         })}
