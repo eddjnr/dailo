@@ -43,7 +43,7 @@ export function DroppableCell({
   return (
     <div
       className={cn(
-        "flex h-full flex-col overflow-hidden px-0.5 py-1 data-dragging:bg-accent sm:px-1",
+        "flex h-full flex-col overflow-hidden px-0.5 py-1 data-dragging:bg-muted/90 sm:px-1",
         className,
       )}
       data-dragging={isOver && activeEvent ? true : undefined}
