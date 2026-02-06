@@ -1,8 +1,10 @@
-![logo](https://github.com/user-attachments/assets/2ec0f98b-636e-4b6e-8a28-b34e6b44ca83) Dailo
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/2ec0f98b-636e-4b6e-8a28-b34e6b44ca83" alt="Dailo Logo" width="80" />
+  <h1>Dailo</h1>
+  <p>A minimalist focus dashboard for productivity enthusiasts.<br/>Customize your workspace with draggable widgets to stay focused and organized.</p>
 
-A minimalist focus dashboard for productivity enthusiasts. Customize your workspace with draggable widgets to stay focused and organized.
-
-<img width="1736" height="923" alt="Captura de tela 2026-02-05 222906" src="https://github.com/user-attachments/assets/508b0418-fae6-467d-8145-fc539f34b9af" />
+  <img width="800" alt="Dailo Screenshot" src="https://github.com/user-attachments/assets/508b0418-fae6-467d-8145-fc539f34b9af" />
+</div>
 
 ## Features
 
@@ -13,8 +15,6 @@ A minimalist focus dashboard for productivity enthusiasts. Customize your worksp
 - **Top 3 Priorities** - Focus on what matters most each day
 - **Habits Tracker** - Daily habit tracking with completion status
 - **Clock & Weather** - Real-time clock and local weather display
-
-
 
 ## Tech Stack
 
