@@ -20,7 +20,7 @@ import {
 import { Button } from "../ui/button";
 
 // --- Tiptap Node Styles ---
-import "@/components/tiptap-node/list-node/list-node.scss";
+import "@/components/editor/tiptap-node/list-node/list-node.scss";
 
 function ToolbarButton({
   onClick,

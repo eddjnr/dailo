@@ -3,8 +3,8 @@
 import { memo, useMemo } from 'react'
 import { format, setHours, setMinutes } from 'date-fns'
 import { useAppStore } from '@/lib/store'
-import { EventCalendar } from '@/components/event-calendar'
-import type { CalendarEvent, EventColor } from '@/components/types'
+import { EventCalendar } from '@/components/calendar/event-calendar'
+import type { CalendarEvent, EventColor } from '@/components/calendar/types'
 import type { TimeBlock } from '@/lib/types'
 
 // Convert TimeBlock time string (HH:mm) to Date object for today
