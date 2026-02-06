@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useLayoutEffect } from 'react'
 
 interface PipOptions {
   width?: number
@@ -74,10 +74,13 @@ export function usePictureInPicture() {
     setPipWindow(null)
   }, [])
 
-  // Cleanup on unmount
-  useEffect(() => {
+  // Cleanup on unmount - use layoutEffect for synchronous cleanup before DOM updates
+  useLayoutEffect(() => {
     return () => {
-      pipWindowRef.current?.close()
+      if (pipWindowRef.current) {
+        pipWindowRef.current.close()
+        pipWindowRef.current = null
+      }
     }
   }, [])
 

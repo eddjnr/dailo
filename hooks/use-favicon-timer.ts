@@ -4,15 +4,24 @@ import { useEffect, useRef } from 'react'
 
 const SIZE = 32
 const DEFAULT_FAVICON = '/logo.svg'
+const TIMER_FAVICON_ID = 'pomodoro-timer-favicon'
+
+// Store reference to our custom favicon element
+let timerFaviconElement: HTMLLinkElement | null = null
 
 function setFavicon(href: string): void {
-  // Remove all existing icon links to avoid conflicts (Next.js may generate multiple)
-  document.querySelectorAll<HTMLLinkElement>('link[rel="icon"]').forEach((el) => el.remove())
-
-  const link = document.createElement('link')
-  link.rel = 'icon'
-  link.href = href
-  document.head.appendChild(link)
+  // Get or create our dedicated favicon element
+  if (!timerFaviconElement) {
+    timerFaviconElement = document.getElementById(TIMER_FAVICON_ID) as HTMLLinkElement | null
+    if (!timerFaviconElement) {
+      timerFaviconElement = document.createElement('link')
+      timerFaviconElement.id = TIMER_FAVICON_ID
+      timerFaviconElement.rel = 'icon'
+      // Insert at the beginning of head so it takes priority
+      document.head.insertBefore(timerFaviconElement, document.head.firstChild)
+    }
+  }
+  timerFaviconElement.href = href
 }
 
 export function useFaviconTimer(
