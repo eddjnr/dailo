@@ -100,7 +100,7 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
     >
       <div
         className={cn(
-          "h-full rounded-2xl bg-card text-card-foreground p-5 flex flex-col transition-all duration-200 card-elevated border-2 border-transparent",
+          "h-full rounded-2xl bg-muted/20 border border-border/50 text-card-foreground p-5 flex flex-col transition-all duration-200",
           isCustomizing && "border-primary/30 group-hover/card:border-primary",
           isOverlay && "border-primary shadow-2xl shadow-primary/20"
         )}
@@ -180,7 +180,7 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
             "absolute -bottom-2 left-1/2 -translate-x-1/2",
             "flex items-center justify-center",
             "w-16 h-4 rounded-full",
-            "bg-card card-elevated cursor-ns-resize",
+            "bg-muted/30 border border-border/50 cursor-ns-resize",
             "opacity-0 group-hover/card:opacity-100 transition-opacity",
             "hover:bg-primary/20 active:bg-primary/30"
           )}

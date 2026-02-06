@@ -17,7 +17,7 @@ import {
   startOfWeek,
 } from "date-fns";
 import type React from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { WeekCellsHeight } from "@/components/calendar/constants";
 import { DraggableEvent } from "./draggable-event";
@@ -220,6 +220,23 @@ export function WeekView({
     "week",
   );
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to current time on mount
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const now = new Date();
+      const currentHour = getHours(now) + getMinutes(now) / 60;
+
+      // Calculate scroll position (current hour - start hour) * cell height
+      // Offset by -2 hours to show some context before current time
+      const scrollToHour = Math.max(currentHour - 2, StartHour);
+      const scrollPosition = (scrollToHour - StartHour) * WeekCellsHeight;
+
+      scrollContainerRef.current.scrollTop = scrollPosition;
+    }
+  }, []);
+
   return (
     <div className="flex h-full flex-col" data-slot="week-view">
       <div className="sticky top-0 z-30 grid grid-cols-8 border-border/70 border-b bg-background/80 backdrop-blur-md">
@@ -305,7 +322,10 @@ export function WeekView({
         </div>
       )}
 
-      <div className="grid flex-1 grid-cols-8 overflow-hidden">
+      <div
+        ref={scrollContainerRef}
+        className="grid flex-1 grid-cols-8 overflow-y-auto overflow-x-hidden"
+      >
         <div className="grid auto-cols-fr border-border/70 border-r">
           {hours.map((hour, index) => (
             <div
