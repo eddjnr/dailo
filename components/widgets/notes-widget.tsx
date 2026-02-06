@@ -99,6 +99,15 @@ export const NotesWidget = memo(function NotesWidget() {
     }
   }, [editor, activeNote, activeNoteId]);
 
+  // Cleanup editor on unmount
+  useEffect(() => {
+    return () => {
+      if (editor && !editor.isDestroyed) {
+        editor.destroy();
+      }
+    };
+  }, [editor]);
+
   const handleAddNote = useCallback(() => {
     addNote();
   }, [addNote]);
