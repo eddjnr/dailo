@@ -26,12 +26,32 @@ export interface Todo {
   priority: 1 | 2 | 3
 }
 
+export type TaskStatus = 'todo' | 'working' | 'in-progress' | 'done'
+
+export interface Task {
+  id: string
+  title: string
+  description: string // HTML content from Tiptap
+  status: TaskStatus
+  priority: 1 | 2 | 3
+  tags: string[]
+  dueDate: string | null
+  createdAt: string
+  updatedAt: string
+  order: number // Position within column
+}
+
+export type EventColor = 'sky' | 'amber' | 'violet' | 'rose' | 'emerald' | 'orange'
+
 export interface TimeBlock {
   id: string
   title: string
-  startTime: string
-  endTime: string
-  color: string
+  description?: string
+  start: string // ISO date string
+  end: string // ISO date string
+  allDay?: boolean
+  color?: EventColor
+  location?: string
 }
 
 export interface Habit {

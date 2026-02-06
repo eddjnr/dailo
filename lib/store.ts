@@ -2,11 +2,13 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Widget, Todo, TimeBlock, Habit, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase, CustomStream } from './types'
+import type { Widget, Todo, TimeBlock, Habit, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase, CustomStream, Task, TaskStatus } from './types'
 
 interface AppState {
   widgets: Widget[]
   todos: Todo[]
+  tasks: Task[]
+  activeTaskId: string | null
   timeBlocks: TimeBlock[]
   habits: Habit[]
   notes: Note[]
@@ -15,6 +17,11 @@ interface AppState {
   pomodoroTimer: PomodoroTimerState
   customStreams: CustomStream[]
   theme: 'light' | 'dark'
+  isCustomizing: boolean
+
+  // UI actions
+  setIsCustomizing: (value: boolean) => void
+  toggleCustomizing: () => void
 
   // Widget actions
   setWidgets: (widgets: Widget[]) => void
@@ -28,6 +35,14 @@ interface AppState {
   addTodo: (text: string, priority: 1 | 2 | 3) => void
   toggleTodo: (id: string) => void
   deleteTodo: (id: string) => void
+
+  // Task actions
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'order'>) => void
+  updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void
+  deleteTask: (id: string) => void
+  moveTask: (id: string, status: TaskStatus, newOrder: number) => void
+  reorderTasks: (tasks: Task[]) => void
+  setActiveTask: (id: string | null) => void
 
   // TimeBlock actions
   addTimeBlock: (block: Omit<TimeBlock, 'id'>) => void
@@ -62,7 +77,7 @@ interface AppState {
 
 const defaultWidgets: Widget[] = [
   { id: 'pomodoro', type: 'pomodoro', title: 'Pomodoro Timer', height: 310, width: 2, column: 0, order: 0, visible: true },
-  { id: 'todo', type: 'todo', title: 'Top Priorities', height: 437, width: 1, column: 0, order: 1, visible: true },
+  { id: 'todo', type: 'todo', title: 'Tasks', height: 437, width: 1, column: 0, order: 1, visible: true },
   { id: 'timeblock', type: 'timeblock', title: 'Time Blocking', height: 558, width: 1, column: 1, order: 1, visible: true },
   { id: 'habits', type: 'habits', title: 'Habit Tracker', height: 336, width: 1, column: 2, order: 1, visible: true },
   { id: 'notes', type: 'notes', title: 'Quick Notes', height: 410, width: 1, column: 2, order: 0, visible: true },
@@ -88,6 +103,8 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       widgets: defaultWidgets,
       todos: [],
+      tasks: [],
+      activeTaskId: null,
       timeBlocks: [],
       habits: [],
       notes: [],
@@ -96,6 +113,10 @@ export const useAppStore = create<AppState>()(
       pomodoroTimer: defaultPomodoroTimer,
       customStreams: [],
       theme: 'dark',
+      isCustomizing: false,
+
+      setIsCustomizing: (value) => set({ isCustomizing: value }),
+      toggleCustomizing: () => set((state) => ({ isCustomizing: !state.isCustomizing })),
 
       setWidgets: (widgets) => set({ widgets }),
 
@@ -141,6 +162,47 @@ export const useAppStore = create<AppState>()(
       deleteTodo: (id) => set((state) => ({
         todos: state.todos.filter((t) => t.id !== id),
       })),
+
+      addTask: (task) => set((state) => {
+        const now = new Date().toISOString()
+        const tasksInColumn = state.tasks.filter((t) => t.status === task.status)
+        const maxOrder = tasksInColumn.length > 0
+          ? Math.max(...tasksInColumn.map((t) => t.order))
+          : -1
+        return {
+          tasks: [
+            ...state.tasks,
+            {
+              ...task,
+              id: crypto.randomUUID(),
+              createdAt: now,
+              updatedAt: now,
+              order: maxOrder + 1,
+            },
+          ],
+        }
+      }),
+
+      updateTask: (id, updates) => set((state) => ({
+        tasks: state.tasks.map((t) =>
+          t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t
+        ),
+      })),
+
+      deleteTask: (id) => set((state) => ({
+        tasks: state.tasks.filter((t) => t.id !== id),
+        activeTaskId: state.activeTaskId === id ? null : state.activeTaskId,
+      })),
+
+      moveTask: (id, status, newOrder) => set((state) => ({
+        tasks: state.tasks.map((t) =>
+          t.id === id ? { ...t, status, order: newOrder, updatedAt: new Date().toISOString() } : t
+        ),
+      })),
+
+      reorderTasks: (tasks) => set({ tasks }),
+
+      setActiveTask: (id) => set({ activeTaskId: id }),
 
       addTimeBlock: (block) => set((state) => ({
         timeBlocks: [
@@ -256,10 +318,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'dailo-storage',
-      version: 5,
+      version: 7,
       partialize: (state) => ({
         widgets: state.widgets,
         todos: state.todos,
+        tasks: state.tasks,
+        activeTaskId: state.activeTaskId,
         timeBlocks: state.timeBlocks,
         habits: state.habits,
         notes: state.notes,
@@ -307,6 +371,35 @@ export const useAppStore = create<AppState>()(
             isRunning: false,
             sessionsCompleted: 0,
           }
+        }
+
+        // Version 6: Add tasks array
+        if (version < 6) {
+          state.tasks = []
+          state.activeTaskId = null
+        }
+
+        // Version 7: Migrate timeBlocks to new format with start/end ISO strings
+        if (version < 7) {
+          const oldBlocks = state.timeBlocks || []
+          state.timeBlocks = oldBlocks.map((block: { id: string; title: string; date?: string; startTime?: string; endTime?: string; color?: string; start?: string; end?: string; description?: string; allDay?: boolean; location?: string }) => {
+            // If already in new format, keep as is
+            if (block.start && block.end) {
+              return block
+            }
+            // Convert old format to new format
+            const date = block.date || new Date().toISOString().split('T')[0]
+            const startTime = block.startTime || '09:00'
+            const endTime = block.endTime || '10:00'
+            return {
+              id: block.id,
+              title: block.title,
+              start: `${date}T${startTime}:00`,
+              end: `${date}T${endTime}:00`,
+              color: block.color === 'blue' ? 'sky' : block.color === 'green' ? 'emerald' : block.color === 'red' ? 'rose' : block.color === 'yellow' ? 'amber' : block.color === 'purple' ? 'violet' : block.color || 'sky',
+              allDay: false,
+            }
+          })
         }
 
         return state
