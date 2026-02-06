@@ -1,18 +1,45 @@
 'use client'
 
 import { memo } from 'react'
-import { GripVertical, Eye, EyeOff, Maximize2, GripHorizontal } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
+import { GripVertical, Eye, EyeOff, Maximize2, GripHorizontal, Loader2 } from 'lucide-react'
 import type { Widget } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
-import {
-  PomodoroWidget,
-  TodoWidget,
-  TimeBlockWidget,
-  HabitsWidget,
-  NotesWidget,
-  LofiWidget,
-} from '@/components/widgets'
+
+// Loading placeholder for widgets
+const WidgetLoader = () => (
+  <div className="flex items-center justify-center h-full">
+    <Loader2 className="size-5 animate-spin text-muted-foreground" />
+  </div>
+)
+
+// Dynamic imports for all widgets to prevent hydration/unmount issues
+const PomodoroWidget = dynamic(
+  () => import('@/components/widgets/pomodoro').then(mod => ({ default: mod.PomodoroWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const TodoWidget = dynamic(
+  () => import('@/components/widgets/todo-widget').then(mod => ({ default: mod.TodoWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const TimeBlockWidget = dynamic(
+  () => import('@/components/widgets/timeblock').then(mod => ({ default: mod.TimeBlockWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const HabitsWidget = dynamic(
+  () => import('@/components/widgets/habits-widget').then(mod => ({ default: mod.HabitsWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const NotesWidget = dynamic(
+  () => import('@/components/widgets/notes-widget').then(mod => ({ default: mod.NotesWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const LofiWidget = dynamic(
+  () => import('@/components/widgets/lofi').then(mod => ({ default: mod.LofiWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
 
 interface WidgetCardProps {
   widget: Widget
@@ -34,7 +61,7 @@ const widgetComponents: Record<Widget['type'], React.ComponentType> = {
 
 const widgetTitles: Record<Widget['type'], string> = {
   pomodoro: 'Pomodoro Timer',
-  todo: 'Top Priorities',
+  todo: 'Tasks',
   timeblock: 'Time Blocking',
   habits: 'Habit Tracker',
   notes: 'Quick Notes',
@@ -48,7 +75,20 @@ const WidgetContent = memo(function WidgetContent({ type }: { type: Widget['type
 })
 
 export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, dragHandleProps, onFullscreen, onResizeStart }: WidgetCardProps) {
+  const router = useRouter()
   const toggleWidgetVisibility = useAppStore((state) => state.toggleWidgetVisibility)
+
+  const handleFullscreen = () => {
+    if (widget.type === 'todo') {
+      router.push('/tasks')
+    } else if (widget.type === 'notes') {
+      router.push('/notes')
+    } else if (widget.type === 'timeblock') {
+      router.push('/timeblock')
+    } else if (onFullscreen) {
+      onFullscreen(widget)
+    }
+  }
 
   return (
     <div
@@ -81,11 +121,11 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
 
           <div className="flex items-center gap-1">
             {/* Fullscreen button - always visible on hover */}
-            {!isOverlay && onFullscreen && (
+            {!isOverlay && (onFullscreen || widget.type === 'todo' || widget.type === 'notes' || widget.type === 'timeblock') && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  onFullscreen(widget)
+                  handleFullscreen()
                 }}
                 className={cn(
                   "p-1.5 rounded-lg transition-all duration-200",

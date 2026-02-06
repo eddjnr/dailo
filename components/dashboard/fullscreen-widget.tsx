@@ -1,18 +1,43 @@
 'use client'
 
 import { useEffect, useCallback, useState } from 'react'
-import { X } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { X, Loader2 } from 'lucide-react'
 import type { Widget } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import {
-  PomodoroWidget,
-  TodoWidget,
-  TimeBlockWidget,
-  HabitsWidget,
-  NotesWidget,
-  LofiWidget,
-  LofiFullscreenWidget,
-} from '@/components/widgets'
+
+// Loading placeholder
+const WidgetLoader = () => (
+  <div className="flex items-center justify-center h-full">
+    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+  </div>
+)
+
+// Dynamic imports for all widgets
+const PomodoroWidget = dynamic(
+  () => import('@/components/widgets/pomodoro').then(mod => ({ default: mod.PomodoroWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const TodoWidget = dynamic(
+  () => import('@/components/widgets/todo-widget').then(mod => ({ default: mod.TodoWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const TimeBlockWidget = dynamic(
+  () => import('@/components/widgets/timeblock').then(mod => ({ default: mod.TimeBlockWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const HabitsWidget = dynamic(
+  () => import('@/components/widgets/habits-widget').then(mod => ({ default: mod.HabitsWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const NotesWidget = dynamic(
+  () => import('@/components/widgets/notes-widget').then(mod => ({ default: mod.NotesWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
+const LofiFullscreenWidget = dynamic(
+  () => import('@/components/widgets/lofi').then(mod => ({ default: mod.LofiFullscreenWidget })),
+  { ssr: false, loading: WidgetLoader }
+)
 
 interface FullscreenWidgetProps {
   widget: Widget | null
@@ -30,7 +55,7 @@ const widgetComponents: Record<Widget['type'], React.ComponentType> = {
 
 const widgetTitles: Record<Widget['type'], string> = {
   pomodoro: 'Pomodoro Timer',
-  todo: 'Top Priorities',
+  todo: 'Tasks',
   timeblock: 'Time Blocking',
   habits: 'Habit Tracker',
   notes: 'Quick Notes',
