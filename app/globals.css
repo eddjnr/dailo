@@ -304,7 +304,7 @@ input[type="range"]::-moz-range-thumb {
   outline: none;
 }
 
-.tiptap p.is-editor-empty:first-child::before {
+.tiptap .is-empty::before {
   color: var(--muted-foreground);
   content: attr(data-placeholder);
   float: left;
@@ -348,9 +348,15 @@ input[type="range"]::-moz-range-thumb {
 
 .tiptap blockquote {
   border-left: 3px solid var(--primary);
-  padding-left: 0.75rem;
+  padding: 0.75rem 1rem;
   margin: 0.5rem 0;
-  color: var(--muted-foreground);
+  color: var(--foreground);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 0 0.25rem 0.25rem 0;
+}
+
+.dark .tiptap blockquote {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .tiptap code {

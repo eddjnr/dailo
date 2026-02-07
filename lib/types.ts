@@ -91,3 +91,9 @@ export interface CustomStream {
   videoId: string
   gif: string
 }
+
+export interface ExcalidrawData {
+  elements: unknown[]
+  appState: Record<string, unknown>
+  files: Record<string, unknown>
+}
