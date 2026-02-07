@@ -3,7 +3,7 @@
   <h1>Dailo</h1>
   <p>A minimalist focus dashboard for productivity enthusiasts.<br/>Customize your workspace with draggable widgets to stay focused and organized.</p>
 
-  <img width="800" alt="Dailo Screenshot" src="https://github.com/user-attachments/assets/508b0418-fae6-467d-8145-fc539f34b9af" />
+  <img width="2359" alt="Dailo Screenshot" height="1313" alt="image" src="https://github.com/user-attachments/assets/d7b6d14b-1b5a-4995-a791-0680bfc0ad12" />
 </div>
 
 ## Features
