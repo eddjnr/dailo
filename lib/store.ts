@@ -73,6 +73,10 @@ interface AppState {
   // Theme actions
   setTheme: (theme: 'light' | 'dark') => void
   toggleTheme: () => void
+
+  // Data management actions
+  exportData: () => string
+  importData: (data: string) => boolean
 }
 
 const defaultWidgets: Widget[] = [
@@ -100,7 +104,7 @@ const defaultPomodoroTimer: PomodoroTimerState = {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       widgets: defaultWidgets,
       todos: [],
       tasks: [],
@@ -315,6 +319,57 @@ export const useAppStore = create<AppState>()(
       toggleTheme: () => set((state) => ({
         theme: state.theme === 'light' ? 'dark' : 'light',
       })),
+
+      exportData: () => {
+        const state = get()
+        const exportableData = {
+          version: 7,
+          exportedAt: new Date().toISOString(),
+          data: {
+            widgets: state.widgets,
+            todos: state.todos,
+            tasks: state.tasks,
+            timeBlocks: state.timeBlocks,
+            habits: state.habits,
+            notes: state.notes,
+            pomodoroSettings: state.pomodoroSettings,
+            customStreams: state.customStreams,
+            theme: state.theme,
+          },
+        }
+        return JSON.stringify(exportableData, null, 2)
+      },
+
+      importData: (jsonData: string) => {
+        try {
+          const parsed = JSON.parse(jsonData)
+          if (!parsed.data || typeof parsed.data !== 'object') {
+            return false
+          }
+          const { data } = parsed
+          set({
+            widgets: data.widgets ?? defaultWidgets,
+            todos: data.todos ?? [],
+            tasks: data.tasks ?? [],
+            timeBlocks: data.timeBlocks ?? [],
+            habits: data.habits ?? [],
+            notes: data.notes ?? [],
+            activeNoteId: data.notes?.[0]?.id ?? null,
+            pomodoroSettings: data.pomodoroSettings ?? defaultPomodoroSettings,
+            pomodoroTimer: {
+              phase: 'focus',
+              timeLeft: (data.pomodoroSettings?.focusDuration ?? 25) * 60,
+              isRunning: false,
+              sessionsCompleted: 0,
+            },
+            customStreams: data.customStreams ?? [],
+            theme: data.theme ?? 'dark',
+          })
+          return true
+        } catch {
+          return false
+        }
+      },
     }),
     {
       name: 'dailo-storage',

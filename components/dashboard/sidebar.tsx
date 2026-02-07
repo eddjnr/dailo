@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Pencil, Settings, Github } from 'lucide-react'
+import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Pencil, Settings, Github, SlidersHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
 import { useAppStore } from '@/lib/store'
+import { SettingsModal } from './settings-modal'
 
 interface SidebarProps {
   theme: 'light' | 'dark'
@@ -67,6 +69,7 @@ function PomodoroProgressRing({ progress, isRunning }: { progress: number; isRun
 export function Sidebar({ theme, isCustomizing, onToggleTheme, onToggleCustomizing }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const pomodoroTimer = useAppStore((state) => state.pomodoroTimer)
   const pomodoroSettings = useAppStore((state) => state.pomodoroSettings)
@@ -145,6 +148,13 @@ export function Sidebar({ theme, isCustomizing, onToggleTheme, onToggleCustomizi
         >
           <Settings className={cn("size-5", isCustomizing && "animate-spin")} />
         </button>
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="size-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center transition-all"
+          aria-label="Settings"
+        >
+          <SlidersHorizontal className="size-5" />
+        </button>
         <a
           href="https://github.com/eddjnr/dailo"
           target="_blank"
@@ -155,6 +165,8 @@ export function Sidebar({ theme, isCustomizing, onToggleTheme, onToggleCustomizi
           <Github className="size-5" />
         </a>
       </div>
+
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </aside>
   )
 }
