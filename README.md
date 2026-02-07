@@ -15,6 +15,7 @@
 - **Top 3 Priorities** - Focus on what matters most each day
 - **Habits Tracker** - Daily habit tracking with completion status
 - **Clock & Weather** - Real-time clock and local weather display
+- **Excalidraw** - Whiteboard for sketching ideas and diagrams
 
 ## Tech Stack
 

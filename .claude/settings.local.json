@@ -8,7 +8,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx @tiptap/cli@latest add simple-editor)",
       "Bash(npx @tiptap/cli@latest add:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git remote:*)"
     ]
   }
 }

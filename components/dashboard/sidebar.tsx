@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Pencil, Settings } from 'lucide-react'
+import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Pencil, Settings, Github } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
 import { useAppStore } from '@/lib/store'
@@ -145,6 +145,15 @@ export function Sidebar({ theme, isCustomizing, onToggleTheme, onToggleCustomizi
         >
           <Settings className={cn("size-5", isCustomizing && "animate-spin")} />
         </button>
+        <a
+          href="https://github.com/eddjnr/dailo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="size-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center justify-center transition-all"
+          aria-label="GitHub repository"
+        >
+          <Github className="size-5" />
+        </a>
       </div>
     </aside>
   )
