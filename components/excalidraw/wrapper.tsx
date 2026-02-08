@@ -91,6 +91,12 @@ const ExcalidrawWrapper: React.FC = () => {
         // @ts-expect-error - Excalidraw types are complex, we store simplified data
         initialData={excalidrawInitialData}
         onChange={handleChange}
+        UIOptions={{
+          canvasActions: {
+            changeViewBackgroundColor: false
+          }
+        }}
+        
       />
     </div>
   );

@@ -378,3 +378,8 @@ input[type="range"]::-moz-range-thumb {
   background: none;
   padding: 0;
 }
+
+/* Excalidraw theme override */
+.excalidraw.theme--dark {
+  --theme-filter: invert(97%) hue-rotate(10deg) !important;
+}
