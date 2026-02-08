@@ -4,6 +4,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Widget, Todo, TimeBlock, Habit, HabitType, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase, CustomStream, Task, TaskStatus } from './types'
 
+export interface AmbientSettings {
+  volumes: Record<string, number>
+  enabled: Record<string, boolean>
+}
+
 interface AppState {
   widgets: Widget[]
   todos: Todo[]
@@ -16,6 +21,7 @@ interface AppState {
   pomodoroSettings: PomodoroSettings
   pomodoroTimer: PomodoroTimerState
   customStreams: CustomStream[]
+  ambientSettings: AmbientSettings
   theme: 'light' | 'dark'
   isCustomizing: boolean
 
@@ -74,6 +80,9 @@ interface AppState {
   addCustomStream: (name: string, videoId: string, gif: string) => void
   deleteCustomStream: (id: string) => void
 
+  // Ambient sounds actions
+  updateAmbientSettings: (settings: Partial<AmbientSettings>) => void
+
   // Theme actions
   setTheme: (theme: 'light' | 'dark') => void
   toggleTheme: () => void
@@ -84,12 +93,12 @@ interface AppState {
 }
 
 const defaultWidgets: Widget[] = [
-  { id: 'pomodoro', type: 'pomodoro', title: 'Pomodoro Timer', height: 310, width: 2, column: 0, order: 0, visible: true },
+  { id: 'pomodoro', type: 'pomodoro', title: 'Pomodoro Timer', height: 320, width: 2, column: 0, order: 0, visible: true },
   { id: 'todo', type: 'todo', title: 'Tasks', height: 437, width: 1, column: 0, order: 1, visible: true },
   { id: 'timeblock', type: 'timeblock', title: 'Time Blocking', height: 558, width: 1, column: 1, order: 1, visible: true },
-  { id: 'habits', type: 'habits', title: 'Habit Tracker', height: 336, width: 1, column: 2, order: 1, visible: true },
+  { id: 'habits', type: 'habits', title: 'Habit Tracker', height: 348, width: 1, column: 2, order: 1, visible: true },
   { id: 'notes', type: 'notes', title: 'Quick Notes', height: 410, width: 1, column: 2, order: 0, visible: true },
-  { id: 'lofi', type: 'lofi', title: 'Lofi Player', height: 190, width: 1, column: 1, order: 0, visible: true },
+  { id: 'lofi', type: 'lofi', title: 'Lofi Player', height: 200, width: 1, column: 1, order: 0, visible: true },
 ]
 
 const defaultPomodoroSettings: PomodoroSettings = {
@@ -106,6 +115,11 @@ const defaultPomodoroTimer: PomodoroTimerState = {
   sessionsCompleted: 0,
 }
 
+const defaultAmbientSettings: AmbientSettings = {
+  volumes: { rain: 30, forest: 30 },
+  enabled: { rain: false, forest: false },
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -120,6 +134,7 @@ export const useAppStore = create<AppState>()(
       pomodoroSettings: defaultPomodoroSettings,
       pomodoroTimer: defaultPomodoroTimer,
       customStreams: [],
+      ambientSettings: defaultAmbientSettings,
       theme: 'dark',
       isCustomizing: false,
 
@@ -383,6 +398,13 @@ export const useAppStore = create<AppState>()(
         customStreams: state.customStreams.filter((s) => s.id !== id),
       })),
 
+      updateAmbientSettings: (settings) => set((state) => ({
+        ambientSettings: {
+          volumes: { ...state.ambientSettings.volumes, ...settings.volumes },
+          enabled: { ...state.ambientSettings.enabled, ...settings.enabled },
+        },
+      })),
+
       setTheme: (theme) => set({ theme }),
 
       toggleTheme: () => set((state) => ({
@@ -403,6 +425,7 @@ export const useAppStore = create<AppState>()(
             notes: state.notes,
             pomodoroSettings: state.pomodoroSettings,
             customStreams: state.customStreams,
+            ambientSettings: state.ambientSettings,
             theme: state.theme,
           },
         }
@@ -432,6 +455,7 @@ export const useAppStore = create<AppState>()(
               sessionsCompleted: 0,
             },
             customStreams: data.customStreams ?? [],
+            ambientSettings: data.ambientSettings ?? defaultAmbientSettings,
             theme: data.theme ?? 'dark',
           })
           return true
@@ -442,7 +466,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'dailo-storage',
-      version: 8,
+      version: 9,
       partialize: (state) => ({
         widgets: state.widgets,
         todos: state.todos,
@@ -455,6 +479,7 @@ export const useAppStore = create<AppState>()(
         pomodoroSettings: state.pomodoroSettings,
         pomodoroTimer: { ...state.pomodoroTimer, isRunning: false }, // Don't persist running state
         customStreams: state.customStreams,
+        ambientSettings: state.ambientSettings,
         theme: state.theme,
       }),
       migrate: (persistedState, version) => {
@@ -542,6 +567,11 @@ export const useAppStore = create<AppState>()(
             })),
             createdAt: new Date().toISOString(),
           }))
+        }
+
+        // Version 9: Add ambient sounds settings
+        if (version < 9) {
+          state.ambientSettings = defaultAmbientSettings
         }
 
         return state

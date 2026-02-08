@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useCallback, memo, useState, useMemo } from 'react'
-import { Radio, X, Link } from 'lucide-react'
+import { Radio, X, Link, CloudRain, TreePine } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
 import { LOFI_STREAMS } from './constants'
 import { playerManager } from './player-manager'
 import { usePlayerState } from './use-player-state'
+import { ambientManager, AMBIENT_SOUNDS } from './ambient-manager'
+import { useAmbientState } from './use-ambient-state'
 import { StreamThumbnail } from './stream-thumbnail'
 import { PlayerControls } from './player-controls'
 import { StationItem } from './station-item'
@@ -17,6 +19,12 @@ const THUMBNAIL_OPTIONS = [
   '/lofi-3.gif',
   '/lofi-4.gif',
 ]
+
+const AmbientIcon = ({ id }: { id: string }) => {
+  if (id === 'rain') return <CloudRain className="size-4" />
+  if (id === 'forest') return <TreePine className="size-4" />
+  return null
+}
 
 function extractVideoId(url: string): string | null {
   // Handle various YouTube URL formats
@@ -33,9 +41,12 @@ function extractVideoId(url: string): string | null {
 
 export const LofiFullscreenWidget = memo(function LofiFullscreenWidget() {
   const state = usePlayerState()
+  const ambientState = useAmbientState()
   const customStreams = useAppStore((state) => state.customStreams)
   const addCustomStream = useAppStore((state) => state.addCustomStream)
   const deleteCustomStream = useAppStore((state) => state.deleteCustomStream)
+  const ambientSettings = useAppStore((s) => s.ambientSettings)
+  const updateAmbientSettings = useAppStore((s) => s.updateAmbientSettings)
   const [isAdding, setIsAdding] = useState(false)
   const [newUrl, setNewUrl] = useState('')
   const [newName, setNewName] = useState('')
@@ -91,6 +102,29 @@ export const LofiFullscreenWidget = memo(function LofiFullscreenWidget() {
       selectStream(index)
     }
   }, [state.streamIndex, togglePlay, selectStream])
+
+  // Initialize ambient sounds
+  useEffect(() => {
+    ambientManager?.init()
+    ambientManager?.restoreState(ambientSettings)
+  }, [])
+
+  const toggleAmbientSound = useCallback(
+    (id: string) => {
+      ambientManager?.toggleSound(id)
+      const newEnabled = { [id]: !ambientState.enabled[id] }
+      updateAmbientSettings({ enabled: newEnabled })
+    },
+    [ambientState.enabled, updateAmbientSettings]
+  )
+
+  const handleAmbientVolumeChange = useCallback(
+    (id: string, volume: number) => {
+      ambientManager?.setVolume(id, volume)
+      updateAmbientSettings({ volumes: { [id]: volume } })
+    },
+    [updateAmbientSettings]
+  )
 
   const handleAddStream = (e: React.FormEvent) => {
     e.preventDefault()
@@ -242,6 +276,42 @@ export const LofiFullscreenWidget = memo(function LofiFullscreenWidget() {
               <span>Add YouTube URL</span>
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Ambient Sounds */}
+      <div className="py-4 border-t border-border/50">
+        <p className="text-xs font-medium text-muted-foreground mb-3">Ambient Sounds</p>
+        <div className="flex flex-wrap gap-3">
+          {AMBIENT_SOUNDS.map((sound) => (
+            <div key={sound.id} className="flex items-center gap-2">
+              <button
+                onClick={() => toggleAmbientSound(sound.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  "active:scale-95",
+                  ambientState.enabled[sound.id]
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                <AmbientIcon id={sound.id} />
+                <span>{sound.name}</span>
+              </button>
+              {ambientState.enabled[sound.id] && (
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={ambientState.volumes[sound.id]}
+                  onChange={(e) =>
+                    handleAmbientVolumeChange(sound.id, parseInt(e.target.value))
+                  }
+                  className="w-20 h-1 rounded-full cursor-pointer accent-foreground"
+                />
+              )}
+            </div>
+          ))}
         </div>
       </div>
 

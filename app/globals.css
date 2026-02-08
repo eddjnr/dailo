@@ -216,6 +216,10 @@ textarea:focus-visible {
   animation: fadeInUp 0.4s ease-out both;
 }
 
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 /* React Grid Layout Styles */
 .react-grid-item {
   transition: all 200ms ease;
