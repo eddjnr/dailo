@@ -85,6 +85,8 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
       router.push('/notes')
     } else if (widget.type === 'timeblock') {
       router.push('/timeblock')
+    } else if (widget.type === 'habits') {
+      router.push('/habits')
     } else if (onFullscreen) {
       onFullscreen(widget)
     }
@@ -121,7 +123,7 @@ export function WidgetCard({ widget, isCustomizing = false, isOverlay = false, d
 
           <div className="flex items-center gap-1">
             {/* Fullscreen button - always visible on hover */}
-            {!isOverlay && (onFullscreen || widget.type === 'todo' || widget.type === 'notes' || widget.type === 'timeblock') && (
+            {!isOverlay && (onFullscreen || widget.type === 'todo' || widget.type === 'notes' || widget.type === 'timeblock' || widget.type === 'habits') && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()

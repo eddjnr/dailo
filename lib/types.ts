@@ -54,11 +54,22 @@ export interface TimeBlock {
   location?: string
 }
 
+export type HabitType = 'binary' | 'count'
+
+export interface HabitDayData {
+  date: string      // YYYY-MM-DD
+  count: number     // Para count: valor atual; para binary: 0 ou 1
+}
+
 export interface Habit {
   id: string
   name: string
   icon: string
-  completedDays: string[]
+  type: HabitType
+  target: number    // Para count: meta diária; para binary: sempre 1
+  unit?: string     // Opcional: "copos", "páginas", etc.
+  dayData: HabitDayData[]
+  createdAt: string
 }
 
 export interface Note {

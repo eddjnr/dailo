@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Widget, Todo, TimeBlock, Habit, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase, CustomStream, Task, TaskStatus } from './types'
+import type { Widget, Todo, TimeBlock, Habit, HabitType, Note, PomodoroSettings, PomodoroTimerState, PomodoroPhase, CustomStream, Task, TaskStatus } from './types'
 
 interface AppState {
   widgets: Widget[]
@@ -50,9 +50,13 @@ interface AppState {
   deleteTimeBlock: (id: string) => void
 
   // Habit actions
-  addHabit: (name: string, icon: string) => void
-  toggleHabitDay: (id: string, date: string) => void
+  addHabit: (habit: { name: string; icon: string; type: HabitType; target: number; unit?: string }) => void
+  updateHabit: (id: string, updates: Partial<Pick<Habit, 'name' | 'icon' | 'type' | 'target' | 'unit'>>) => void
   deleteHabit: (id: string) => void
+  toggleHabitDay: (id: string, date: string) => void
+  incrementHabitCount: (id: string, date: string) => void
+  decrementHabitCount: (id: string, date: string) => void
+  setHabitCount: (id: string, date: string, count: number) => void
 
   // Notes actions
   addNote: (title?: string) => void
@@ -225,28 +229,93 @@ export const useAppStore = create<AppState>()(
         timeBlocks: state.timeBlocks.filter((tb) => tb.id !== id),
       })),
 
-      addHabit: (name, icon) => set((state) => ({
+      addHabit: (habit) => set((state) => ({
         habits: [
           ...state.habits,
-          { id: crypto.randomUUID(), name, icon, completedDays: [] },
+          {
+            id: crypto.randomUUID(),
+            name: habit.name,
+            icon: habit.icon,
+            type: habit.type,
+            target: habit.target,
+            unit: habit.unit,
+            dayData: [],
+            createdAt: new Date().toISOString(),
+          },
         ],
       })),
 
-      toggleHabitDay: (id, date) => set((state) => ({
+      updateHabit: (id, updates) => set((state) => ({
         habits: state.habits.map((h) =>
-          h.id === id
-            ? {
-                ...h,
-                completedDays: h.completedDays.includes(date)
-                  ? h.completedDays.filter((d) => d !== date)
-                  : [...h.completedDays, date],
-              }
-            : h
+          h.id === id ? { ...h, ...updates } : h
         ),
       })),
 
       deleteHabit: (id) => set((state) => ({
         habits: state.habits.filter((h) => h.id !== id),
+      })),
+
+      toggleHabitDay: (id, date) => set((state) => ({
+        habits: state.habits.map((h) => {
+          if (h.id !== id) return h
+          const existingIndex = h.dayData.findIndex((d) => d.date === date)
+          if (existingIndex >= 0) {
+            // Remove the day
+            return { ...h, dayData: h.dayData.filter((d) => d.date !== date) }
+          }
+          // Add the day with count = target (completed)
+          return { ...h, dayData: [...h.dayData, { date, count: h.target }] }
+        }),
+      })),
+
+      incrementHabitCount: (id, date) => set((state) => ({
+        habits: state.habits.map((h) => {
+          if (h.id !== id) return h
+          const existingIndex = h.dayData.findIndex((d) => d.date === date)
+          if (existingIndex >= 0) {
+            const newDayData = [...h.dayData]
+            newDayData[existingIndex] = {
+              ...newDayData[existingIndex],
+              count: Math.min(newDayData[existingIndex].count + 1, h.target),
+            }
+            return { ...h, dayData: newDayData }
+          }
+          return { ...h, dayData: [...h.dayData, { date, count: 1 }] }
+        }),
+      })),
+
+      decrementHabitCount: (id, date) => set((state) => ({
+        habits: state.habits.map((h) => {
+          if (h.id !== id) return h
+          const existingIndex = h.dayData.findIndex((d) => d.date === date)
+          if (existingIndex >= 0) {
+            const newCount = Math.max(h.dayData[existingIndex].count - 1, 0)
+            if (newCount === 0) {
+              return { ...h, dayData: h.dayData.filter((d) => d.date !== date) }
+            }
+            const newDayData = [...h.dayData]
+            newDayData[existingIndex] = { ...newDayData[existingIndex], count: newCount }
+            return { ...h, dayData: newDayData }
+          }
+          return h
+        }),
+      })),
+
+      setHabitCount: (id, date, count) => set((state) => ({
+        habits: state.habits.map((h) => {
+          if (h.id !== id) return h
+          const clampedCount = Math.max(0, Math.min(count, h.target))
+          if (clampedCount === 0) {
+            return { ...h, dayData: h.dayData.filter((d) => d.date !== date) }
+          }
+          const existingIndex = h.dayData.findIndex((d) => d.date === date)
+          if (existingIndex >= 0) {
+            const newDayData = [...h.dayData]
+            newDayData[existingIndex] = { date, count: clampedCount }
+            return { ...h, dayData: newDayData }
+          }
+          return { ...h, dayData: [...h.dayData, { date, count: clampedCount }] }
+        }),
       })),
 
       addNote: (title) => set((state) => {
@@ -373,7 +442,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'dailo-storage',
-      version: 7,
+      version: 8,
       partialize: (state) => ({
         widgets: state.widgets,
         todos: state.todos,
@@ -455,6 +524,24 @@ export const useAppStore = create<AppState>()(
               allDay: false,
             }
           })
+        }
+
+        // Version 8: Migrate habits to new format with type and dayData
+        if (version < 8) {
+          const oldHabits = state.habits || []
+          state.habits = oldHabits.map((habit: { id: string; name: string; icon: string; completedDays?: string[] }) => ({
+            id: habit.id,
+            name: habit.name,
+            icon: habit.icon,
+            type: 'binary' as const,
+            target: 1,
+            unit: undefined,
+            dayData: (habit.completedDays || []).map((date: string) => ({
+              date,
+              count: 1,
+            })),
+            createdAt: new Date().toISOString(),
+          }))
         }
 
         return state

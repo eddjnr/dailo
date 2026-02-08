@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DndContext,
   DragOverlay,
@@ -171,37 +172,36 @@ export function TaskBoard() {
   )
 
   return (
-    <main className="flex-1 min-w-0 p-6 flex flex-col">
+    <main className="flex-1 min-w-0 flex flex-col h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors mb-1 inline-block"
-          >
-            ← Back to Dashboard
-          </Link>
-          <h1 className="text-2xl font-semibold">Task Management</h1>
-          <p className="text-sm text-muted-foreground">Organize and track your tasks</p>
+      <div className="h-14 px-4 border-b border-border shrink-0 flex items-center">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ← Back
+            </Link>
+            <h1 className="text-lg font-semibold">Tasks</h1>
+          </div>
+          <Button onClick={handleCreateNewTask} size="sm" className="gap-1.5">
+            <Plus className="size-4" />
+            Add
+          </Button>
         </div>
-        <button
-          onClick={handleCreateNewTask}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="size-4" />
-          New Task
-        </button>
       </div>
 
       {/* Board */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={pointerWithin}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex-1 grid grid-cols-4 gap-4 min-h-0">
+      <div className="flex-1 p-4 min-h-0 overflow-hidden">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={pointerWithin}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="h-full grid grid-cols-4 gap-4">
           {COLUMNS.map((column) => (
             <TaskColumn
               key={column.status}
@@ -212,12 +212,13 @@ export function TaskBoard() {
               onTaskClick={handleTaskClick}
             />
           ))}
-        </div>
+          </div>
 
-        <DragOverlay>
-          {draggedTask && <TaskCard task={draggedTask} isOverlay />}
-        </DragOverlay>
-      </DndContext>
+          <DragOverlay>
+            {draggedTask && <TaskCard task={draggedTask} isOverlay />}
+          </DragOverlay>
+        </DndContext>
+      </div>
 
       {/* Task Editor Modal */}
       {activeTaskId && (

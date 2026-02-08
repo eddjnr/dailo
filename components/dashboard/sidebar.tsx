@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Pencil, Settings, Github, SlidersHorizontal } from 'lucide-react'
+import { Sun, Moon, Timer, ListTodo, FileText, CalendarDays, Pencil, Settings, Github, SlidersHorizontal, Flame } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
 import { useAppStore } from '@/lib/store'
@@ -18,6 +18,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'pomodoro', icon: Timer, path: '/', title: 'Pomodoro' },
   { id: 'tasks', icon: ListTodo, path: '/tasks', title: 'Tasks' },
+  { id: 'habits', icon: Flame, path: '/habits', title: 'Habits' },
   { id: 'timeblock', icon: CalendarDays, path: '/timeblock', title: 'Calendar' },
   { id: 'notes', icon: FileText, path: '/notes', title: 'Notes' },
   { id: 'draw', icon: Pencil, path: '/draw', title: 'Draw' },
